@@ -46,6 +46,10 @@ import { getUriWithoutOrg } from '@services/config/config';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTranslation } from 'react-i18next';
 import { useLHAnalytics, AnalyticsEvent } from '@services/analytics';
+import {
+  hasAccountEmailChanged,
+  resolveAccountProfile,
+} from '@/lib/account/profile';
 
 const SUPPORTED_FILES = constructAcceptValue(['jpg', 'png', 'webp', 'gif'])
 
@@ -239,7 +243,8 @@ const UserEditForm = ({
   errors,
   touched,
   isSubmitting,
-  profilePicture
+  profilePicture,
+  originalEmail,
 }: {
   values: FormValues;
   setFieldValue: (_field: string, _value: any) => void;
@@ -247,6 +252,7 @@ const UserEditForm = ({
   errors: any;
   touched: any;
   isSubmitting: boolean;
+  originalEmail: string;
   profilePicture: {
     error: string | undefined;
     success: string;
@@ -287,7 +293,7 @@ const UserEditForm = ({
               {touched.email && errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email}</p>
               )}
-              {values.email !== values.email && (
+              {hasAccountEmailChanged(values.email, originalEmail) && (
                 <div className="flex items-center space-x-2 mt-2 text-amber-600 bg-amber-50 p-2 rounded-md">
                   <AlertTriangle size={16} />
                   <span className="text-sm">{t('user.settings.general.logout_warning')}</span>
@@ -552,7 +558,7 @@ function AccountGeneral() {
       if (session?.data?.user?.id) {
         try {
           const data = await getUser(session.data.user.id, access_token);
-          setUserData(data);
+          setUserData(resolveAccountProfile(data, session.data.user));
         } catch (error) {
           console.error('Error fetching user data:', error);
           setError('Failed to load user data');
@@ -677,7 +683,7 @@ function AccountGeneral() {
         }}
         validationSchema={validationSchema}
         onSubmit={async (values, { setSubmitting }) => {
-          const isEmailChanged = values.email !== userData.email
+          const isEmailChanged = hasAccountEmailChanged(values.email, userData.email)
           const loadingToast = toast.loading(t('user.settings.general.saving'))
 
           try {
@@ -693,7 +699,7 @@ function AccountGeneral() {
               toast.success(t('user.settings.general.profile_updated'))
             }
             const refreshedUser = await getUser(userData.id, access_token)
-            setUserData(refreshedUser)
+            setUserData(resolveAccountProfile(refreshedUser, { email: values.email }))
           } catch {
             toast.error('Failed to update profile', { id: loadingToast })
           } finally {
@@ -704,6 +710,7 @@ function AccountGeneral() {
         {(formikProps) => (
           <UserEditForm
             {...formikProps}
+            originalEmail={userData.email}
             profilePicture={{
               error,
               success,

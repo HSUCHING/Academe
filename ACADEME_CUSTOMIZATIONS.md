@@ -52,17 +52,19 @@
 
 | 文件 | 状态 | 用途 | 冲突风险 | 后续处理 |
 |---|---|---|---|---|
-| 暂无 | — | Tinybird 自有配置已迁移至 `deploy/tinybird/` | — | 继续保持上游目录无 Academe 自有配置文件 |
+| `apps/web/lib/account/profile.ts` | Academe 新增 | 合并公开资料与当前会话中的私有邮箱，并统一判断邮箱是否变化 | 低 | 若上游资料设置页不再依赖公开用户响应中的邮箱，可删除此文件并改用上游实现 |
+| `apps/web/tests/account-profile-email.test.mjs` | Academe 新增 | 防止登录后设置页邮箱消失或未变更邮箱被误判 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
 
 ## 5. 已修改的上游源文件
 
-当前没有已知的、由 Academe 修改且已跟踪的上游源文件。
+以下文件由 Academe 做了最小修改；同步上游时必须逐项核对。
 
 如果以后必须修改，应按下表登记，并与源码改动在同一提交中更新本节。
 
 | 文件 | 修改原因 | 最小修改摘要 | 冲突风险 | 回退方式 | 首次 commit |
 |---|---|---|---|---|---|
-| 暂无 | — | — | — | — | — |
+| `apps/web/components/Objects/Account/subpages/AccountGeneral.tsx` | 页面误用不含邮箱的 `UserReadPublic` 响应初始化私有设置表单，导致邮箱为空；补填后又被当作邮箱变更并主动退出 | 用会话邮箱补全公开资料；共用真实邮箱变化判断来显示警告和决定是否重新登录 | 中 | 删除 `resolveAccountProfile`/`hasAccountEmailChanged` 的导入和调用，恢复上游实现 | `🐛 Preserve email in account settings` |
+| `.dockerignore` | `runtime-data/` 迁入仓库后，Docker 构建上下文读取 PostgreSQL 数据目录时权限失败，并有发送运行数据的风险 | 增加 `/runtime-data/` 排除规则 | 低 | 仅当运行数据不再位于仓库内时删除该规则 | `🐛 Preserve email in account settings` |
 
 ## 6. 新增或修改内容的登记规则
 
@@ -79,8 +81,23 @@
 
 - 基线日期：2026-09-03。
 - 当前 fork 代码基线 commit：`7313e8aa`（与 `origin/sci` 一致）。
+- 无上游源码修改的 Academe 部署基线 commit：`84faaaa8`。
 - 当前分支：`sci`。
 - 当前部署使用上游根 `Dockerfile`，未修改已跟踪应用源码。
-- Academe 的主要差异目前集中在独立部署层、运行时环境变量和 Tinybird 配置。
+- 从 `84faaaa8` 之后开始记录 Academe 的必要源码补丁。
 
 本节中的分支和 commit 应在完成下一次上游同步或正式发布后更新。
+
+
+## 8. 源码补丁比对日志
+
+### `🐛 Preserve email in account settings`
+
+- 根因：`AccountGeneral.tsx` 使用通用 `getUser()` 请求 `/users/id/{id}`；该接口返回保护隐私的 `UserReadPublic`，设计上不包含 `email`。
+- 用户影响：重新登录后邮箱输入框为空，表单无法直接保存；用户补填原邮箱后，页面把它误判成邮箱变更并执行退出登录。
+- 修复边界：不改变 API 和 `UserReadPublic`，仅在自己的账户设置页从当前认证会话补全邮箱。
+- 修改文件：`apps/web/components/Objects/Account/subpages/AccountGeneral.tsx`。
+- 新增隔离文件：`apps/web/lib/account/profile.ts`、`apps/web/tests/account-profile-email.test.mjs`。
+- 构建配套修改：根 `.dockerignore` 忽略 `/runtime-data/`，防止数据库、Redis、上传和备份数据进入 Docker 构建上下文。
+- 回归验证：`bun test tests/account-profile-email.test.mjs` 必须覆盖“公开资料缺少邮箱”和“原邮箱未变化”两种情况。
+- 上游同步检查：若上游修改了账户设置的数据来源、增加仅本人可用的私有资料接口，或已有等价测试，应先运行本测试；确认上游行为等价后删除本补丁，而不是保留两套合并逻辑。
