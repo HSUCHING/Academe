@@ -1,0 +1,70 @@
+name: academe
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: academe-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ../runtime-data/postgres:/var/lib/postgresql/data
+    networks:
+      - academe-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:7.2.3-alpine
+    container_name: academe-redis
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ../runtime-data/redis:/data
+    networks:
+      - academe-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  academe-app:
+    image: academe-app:local
+    container_name: academe-app
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        LEARNHOUSE_PUBLIC: "true"
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:3020:80"
+    volumes:
+      - ../runtime-data/content:/app/api/content
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - academe-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+networks:
+  academe-network:
+    driver: bridge

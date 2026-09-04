@@ -1,0 +1,8 @@
+{
+  "dev_mode": "branch",
+  "branch_data_mode": "last_partition",
+  "folder": "generated",
+  "include": [
+    "generated"
+  ]
+}
