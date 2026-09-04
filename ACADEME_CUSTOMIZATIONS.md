@@ -56,6 +56,8 @@
 | `apps/web/lib/account/profile.ts` | Academe 新增 | 合并公开资料与当前会话中的私有邮箱，并统一判断邮箱是否变化 | 低 | 若上游资料设置页不再依赖公开用户响应中的邮箱，可删除此文件并改用上游实现 |
 | `apps/web/tests/account-profile-email.test.mjs` | Academe 新增 | 防止登录后设置页邮箱消失或未变更邮箱被误判 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
 | `apps/web/tests/language-preference.test.mjs` | Academe 新增 | 防止用户主动选择的界面语言在刷新后被组织默认语言覆盖 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
+| `apps/web/components/Auth/AcademeAuthVisual.tsx` | Academe 新增 | 封装登录与注册品牌区域的 WebGL 动态背景，不依赖认证业务逻辑 | 低 | 若上游提供可配置的等价动画组件，可删除并切换到上游实现 |
+| `apps/web/tests/auth-visual.test.mjs` | Academe 新增 | 验证动画画布接入时不会替换现有组织品牌内容 | 低 | 与动画组件一起保留；采用上游等价测试后可删除 |
 
 ## 5. 已修改的上游源文件
 
@@ -69,6 +71,7 @@
 | `.dockerignore` | `runtime-data/` 迁入仓库后，Docker 构建上下文读取 PostgreSQL 数据目录时权限失败，并有发送运行数据的风险 | 增加 `/runtime-data/` 排除规则 | 低 | 仅当运行数据不再位于仓库内时删除该规则 | `🐛 Preserve email in account settings` |
 | `apps/web/lib/i18n.ts` | 多处语言菜单直接调用 `changeLanguage`，未记录用户主动选择，刷新后会被组织默认语言覆盖 | 用户发起的语言切换默认写入个人选择标记，并允许系统同步显式关闭该行为 | 中 | 恢复单参数函数，并同时恢复 `OrgLanguageSync.tsx` 调用 | `🐛 Remember the selected interface language` |
 | `apps/web/components/Contexts/OrgLanguageSync.tsx` | 组织默认语言同步与用户主动切换共用同一函数，需要区分来源 | 传入 `userInitiated: false`，确保组织默认值不会伪装成个人选择 | 低 | 恢复单参数调用，并同时恢复 `i18n.ts` | `🐛 Remember the selected interface language` |
+| `apps/web/components/Auth/AuthBrandingPanel.tsx` | 默认认证品牌背景需要接入 Academe 独立动画并简化中央品牌展示；认证路由与表单逻辑均不应改变 | 接入独立动画组件，以大字号 `Academe` 流光标题替代中央组织 Logo 框和普通组织名称；自定义图片与 Unsplash 背景继续使用原逻辑 | 低 | 恢复中央 Logo 与组织名称 JSX，并删除 Academe 视觉组件接入 | `✨ Add animated authentication visual` |
 
 ## 6. 新增或修改内容的登记规则
 
@@ -87,7 +90,7 @@
 - 当前 fork 代码基线 commit：`7313e8aa`（与 `origin/sci` 一致）。
 - 无上游源码修改的 Academe 部署基线 commit：`84faaaa8`。
 - 当前分支：`sci`。
-- 当前部署使用上游根 `Dockerfile`，未修改已跟踪应用源码。
+- 当前部署继续使用未修改的上游根 `Dockerfile`；应用源码补丁全部登记在第 5、8 节。
 - 从 `84faaaa8` 之后开始记录 Academe 的必要源码补丁。
 
 本节中的分支和 commit 应在完成下一次上游同步或正式发布后更新。
@@ -116,3 +119,17 @@
 - 新增隔离测试：`apps/web/tests/language-preference.test.mjs`。
 - 回归验证：用户调用默认写入 `i18nextLng_userPicked=1`；组织默认语言调用明确使用 `userInitiated: false`，不得写入该标记。
 - 上游同步检查：若上游统一了所有语言菜单或提供账户级语言偏好，应先运行本测试；确认刷新持久化和组织默认回退行为等价后删除本补丁。
+
+### `✨ Add animated authentication visual`
+
+- 目标：参考 Aurelis `sci` 分支的动态认证背景，美化 Academe 登录与注册页的品牌区域。
+- 外围方案评估：该效果必须渲染在现有认证 React layout 内，Docker、反向代理和环境变量无法插入页面组件；因此保留一个最小上游接入点。
+- 修复边界：不修改登录、注册、验证码、表单提交、OAuth、会话或后端认证逻辑；组织自定义图片和 Unsplash 背景保持不变。
+- 修改文件：`apps/web/components/Auth/AuthBrandingPanel.tsx`，接入独立组件，并以大字号 `Academe` 流光标题替代中央组织 Logo 圆角框和普通组织名称。
+- 新增隔离文件：`apps/web/components/Auth/AcademeAuthVisual.tsx`、`apps/web/tests/auth-visual.test.mjs`。
+- 动画行为：使用 WebGL2 渲染动态背景，并为固定文字 `Academe` 添加循环高光扫过效果；不支持 WebGL2 时保留 CSS 渐变；系统启用“减少动态效果”时背景只绘制静态帧且标题停止扫光。
+- 可见性修正：文字颜色与 `-webkit-text-fill-color` 必须保持透明，否则不透明字形会遮住背后的移动渐变，使扫光动画存在但肉眼不可见。
+- 回归验证：`bun test tests/auth-visual.test.mjs` 必须证明动画画布与 `Academe` 流光标题被渲染，旧组织名称和中央组织 Logo 图片不再输出；生产构建必须通过。
+- 冲突风险：低。现有文件只有一个小型接入点，主要实现位于 Academe 独立文件。
+- 回退方式：移除品牌面板中的导入、启用条件和 JSX 分支，再删除两个隔离文件。
+- 上游同步检查：若上游提供可配置的等价认证动画，应验证自定义背景、WebGL 降级和减少动态效果后，删除 Academe 组件及接入点。

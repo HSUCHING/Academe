@@ -1,12 +1,10 @@
 'use client'
 import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
-import learnhouseIcon from 'public/learnhouse_bigicon_1.png'
-import { getOrgLogoMediaDirectory, getOrgAuthBackgroundMediaDirectory } from '@services/media/media'
-import { getUriWithOrg } from '@services/config/config'
+import { getOrgAuthBackgroundMediaDirectory } from '@services/media/media'
 import { cn } from '@/lib/utils'
 import { usePlan } from '@components/Hooks/usePlan'
+import AcademeAuthVisual, { AcademeAuthTitle } from '@components/Auth/AcademeAuthVisual'
 
 interface AuthBrandingPanelProps {
   org: any
@@ -81,13 +79,19 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
   // Treat the no-org illustration like a photo background: dark scrim, no
   // blueprint-grid overlay.
   const hasCustomBackground = noOrg || (background_type !== 'gradient' && background_image)
+  const useAcademeVisual =
+    !noOrg && (background_type === 'gradient' || !background_image)
 
   return (
     <div className="relative h-full w-full">
       {/* Inset rounded card (platform-style) */}
       <div className="absolute inset-16 rounded-2xl overflow-hidden">
-        {/* Base layer: org's chosen background (gradient | custom | unsplash) */}
-        <div className="absolute inset-0" style={getBackgroundStyle()} />
+        {/* Keep custom organization imagery untouched; animate only the default background. */}
+        {useAcademeVisual ? (
+          <AcademeAuthVisual />
+        ) : (
+          <div className="absolute inset-0" style={getBackgroundStyle()} />
+        )}
 
         {/* Blueprint + dot overlays — ONLY for gradient fallback (no photo) */}
         {!hasCustomBackground && (
@@ -172,38 +176,16 @@ export default function AuthBrandingPanel({ org, welcomeText, title, subtitle }:
               </p>
             </div>
           ) : (
-            /* Org panel — centered logo + name (unchanged). */
+            /* Org panel — keep the organization name centered over the visual. */
             <>
               <div className="flex-1 flex items-center justify-center">
                 <div className={cn(
-                  "flex flex-col items-center text-center gap-6",
+                  "flex flex-col items-center text-center",
                   text_color === 'light' ? "text-white" : "text-gray-900"
                 )}>
-                  {/* Organization logo */}
-                  <Link prefetch href={getUriWithOrg(org?.slug, '/')}>
-                    <div className="w-24 h-24 rounded-2xl ring-1 ring-inset ring-white/10 bg-white flex items-center justify-center overflow-hidden">
-                      {org?.logo_image ? (
-                        <img
-                          src={getOrgLogoMediaDirectory(org.org_uuid, org.logo_image)}
-                          alt={org.name}
-                          className="w-full h-full object-contain p-3"
-                        />
-                      ) : (
-                        <Image
-                          quality={100}
-                          width={96}
-                          height={96}
-                          src={learnhouseIcon}
-                          alt="LearnHouse"
-                          className="object-contain"
-                        />
-                      )}
-                    </div>
-                  </Link>
-
                   {/* Text content */}
                   <div className="space-y-1">
-                    <h1 className="font-black text-3xl tracking-tight">{org?.name || 'LearnHouse'}</h1>
+                    <AcademeAuthTitle />
                     {displayMessage && (
                       <p className={cn(
                         "text-lg max-w-sm leading-relaxed",
