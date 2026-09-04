@@ -83,7 +83,17 @@ export const initialLocaleReady = Promise.all([
  * Switch language safely — preloads the bundle before switching
  * so the UI never flashes English as a fallback.
  */
-export async function changeLanguage(lng: string) {
+export async function changeLanguage(
+  lng: string,
+  { userInitiated = true }: { userInitiated?: boolean } = {}
+) {
+  if (userInitiated) {
+    try {
+      globalThis.localStorage?.setItem('i18nextLng_userPicked', '1')
+    } catch {
+      // Storage can be unavailable in private or sandboxed browser contexts.
+    }
+  }
   await Promise.all([loadLocale(lng), loadDateLocale(lng)])
   return i18n.changeLanguage(lng)
 }

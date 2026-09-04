@@ -54,6 +54,7 @@
 |---|---|---|---|---|
 | `apps/web/lib/account/profile.ts` | Academe 新增 | 合并公开资料与当前会话中的私有邮箱，并统一判断邮箱是否变化 | 低 | 若上游资料设置页不再依赖公开用户响应中的邮箱，可删除此文件并改用上游实现 |
 | `apps/web/tests/account-profile-email.test.mjs` | Academe 新增 | 防止登录后设置页邮箱消失或未变更邮箱被误判 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
+| `apps/web/tests/language-preference.test.mjs` | Academe 新增 | 防止用户主动选择的界面语言在刷新后被组织默认语言覆盖 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
 
 ## 5. 已修改的上游源文件
 
@@ -65,6 +66,8 @@
 |---|---|---|---|---|---|
 | `apps/web/components/Objects/Account/subpages/AccountGeneral.tsx` | 页面误用不含邮箱的 `UserReadPublic` 响应初始化私有设置表单，导致邮箱为空；补填后又被当作邮箱变更并主动退出 | 用会话邮箱补全公开资料；共用真实邮箱变化判断来显示警告和决定是否重新登录 | 中 | 删除 `resolveAccountProfile`/`hasAccountEmailChanged` 的导入和调用，恢复上游实现 | `🐛 Preserve email in account settings` |
 | `.dockerignore` | `runtime-data/` 迁入仓库后，Docker 构建上下文读取 PostgreSQL 数据目录时权限失败，并有发送运行数据的风险 | 增加 `/runtime-data/` 排除规则 | 低 | 仅当运行数据不再位于仓库内时删除该规则 | `🐛 Preserve email in account settings` |
+| `apps/web/lib/i18n.ts` | 多处语言菜单直接调用 `changeLanguage`，未记录用户主动选择，刷新后会被组织默认语言覆盖 | 用户发起的语言切换默认写入个人选择标记，并允许系统同步显式关闭该行为 | 中 | 恢复单参数函数，并同时恢复 `OrgLanguageSync.tsx` 调用 | `🐛 Remember the selected interface language` |
+| `apps/web/components/Contexts/OrgLanguageSync.tsx` | 组织默认语言同步与用户主动切换共用同一函数，需要区分来源 | 传入 `userInitiated: false`，确保组织默认值不会伪装成个人选择 | 低 | 恢复单参数调用，并同时恢复 `i18n.ts` | `🐛 Remember the selected interface language` |
 
 ## 6. 新增或修改内容的登记规则
 
@@ -100,4 +103,15 @@
 - 新增隔离文件：`apps/web/lib/account/profile.ts`、`apps/web/tests/account-profile-email.test.mjs`。
 - 构建配套修改：根 `.dockerignore` 忽略 `/runtime-data/`，防止数据库、Redis、上传和备份数据进入 Docker 构建上下文。
 - 回归验证：`bun test tests/account-profile-email.test.mjs` 必须覆盖“公开资料缺少邮箱”和“原邮箱未变化”两种情况。
+- 测试范围记录：`docs/operations/2026-09-04-test-inventory.md` 区分目标测试、Web 全套、未执行套件、构建验证和人工验收，避免未来把局部通过误记为全项目通过。
 - 上游同步检查：若上游修改了账户设置的数据来源、增加仅本人可用的私有资料接口，或已有等价测试，应先运行本测试；确认上游行为等价后删除本补丁，而不是保留两套合并逻辑。
+
+### `🐛 Remember the selected interface language`
+
+- 根因：通用 `LanguageSwitcher` 会写入 `i18nextLng_userPicked`，但公开主页用户菜单、Dashboard 桌面侧栏和移动菜单直接调用 `changeLanguage()`；这些入口切换成功后没有个人选择标记，刷新时 `OrgLanguageSync` 会重新套用组织默认语言。
+- 用户影响：在右上角选择中文后当前页面立即变为中文，但刷新后恢复为组织默认英语。
+- 修复边界：不新增数据库字段或后端接口；继续使用 i18next 的浏览器存储，只统一公共切换函数的来源语义。
+- 修改文件：`apps/web/lib/i18n.ts`、`apps/web/components/Contexts/OrgLanguageSync.tsx`。
+- 新增隔离测试：`apps/web/tests/language-preference.test.mjs`。
+- 回归验证：用户调用默认写入 `i18nextLng_userPicked=1`；组织默认语言调用明确使用 `userInitiated: false`，不得写入该标记。
+- 上游同步检查：若上游统一了所有语言菜单或提供账户级语言偏好，应先运行本测试；确认刷新持久化和组织默认回退行为等价后删除本补丁。

@@ -23,7 +23,7 @@ export default function OrgLanguageSync() {
     if (userPicked) return
 
     if (i18n.language.split('-')[0] !== orgDefault) {
-      changeLanguage(orgDefault)
+      changeLanguage(orgDefault, { userInitiated: false })
     }
   }, [orgDefault])
 
