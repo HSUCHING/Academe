@@ -6,9 +6,9 @@ import { send } from './resend'
 
 export async function sendWelcomeAccountMail(args: { email: string; username?: string }): Promise<void> {
   const { email, username } = args
-  await send(email, 'Welcome to LearnHouse 👋', {
+  await send(email, 'Welcome to Academe 👋', {
     accentColor: '#171717',
-    heading: 'Welcome to LearnHouse!',
+    heading: 'Welcome to Academe!',
     subtitle: username
       ? `Hey ${username}, we're thrilled to have you on board.`
       : "We're thrilled to have you on board.",
@@ -18,7 +18,7 @@ export async function sendWelcomeAccountMail(args: { email: string; username?: s
       'Invite learners and track their progress.',
       'Brand your school and share it with the world.',
     ],
-    cta: { label: 'Get started', href: 'https://www.learnhouse.io/home' },
+    cta: { label: 'Get started', href: 'https://academe.metacognix.xyz/' },
   })
 }
 

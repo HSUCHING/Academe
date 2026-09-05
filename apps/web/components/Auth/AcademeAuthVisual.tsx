@@ -203,6 +203,7 @@ export function AcademeAuthTitle() {
       <style>{`
         .academe-auth-shimmer {
           color: transparent;
+          background-color: rgba(255, 255, 255, 0.45);
           background-image: linear-gradient(
             105deg,
             rgba(255, 255, 255, 0.18) 0%,

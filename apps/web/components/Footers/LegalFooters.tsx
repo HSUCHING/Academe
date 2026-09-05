@@ -18,10 +18,12 @@ const PRIVACY_URL = getPlatformUrl('/privacy') || 'https://www.learnhouse.io/pri
 
 export function AuthFooter({ className = '' }: { className?: string }) {
   const { t } = useTranslation()
+  const termsText = t('auth.terms_text', { defaultValue: "By continuing, you agree to Academe's" })
+    .replaceAll('LearnHouse', 'Academe')
   return (
     <div className={`pb-8 pt-6 text-center px-6 ${className}`}>
       <p className="text-[13px] text-black/30 font-medium">
-        {t('auth.terms_text', { defaultValue: "By continuing, you agree to LearnHouse's" })}{' '}
+        {termsText}{' '}
         <Link
           href={TERMS_URL}
           target="_blank"

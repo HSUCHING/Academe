@@ -58,6 +58,11 @@
 | `apps/web/tests/language-preference.test.mjs` | Academe 新增 | 防止用户主动选择的界面语言在刷新后被组织默认语言覆盖 | 低 | 与对应修复一起保留；采用上游等价测试后可删除 |
 | `apps/web/components/Auth/AcademeAuthVisual.tsx` | Academe 新增 | 封装登录与注册品牌区域的 WebGL 动态背景，不依赖认证业务逻辑 | 低 | 若上游提供可配置的等价动画组件，可删除并切换到上游实现 |
 | `apps/web/tests/auth-visual.test.mjs` | Academe 新增 | 验证动画画布接入时不会替换现有组织品牌内容 | 低 | 与动画组件一起保留；采用上游等价测试后可删除 |
+| `apps/web/public/academe-brand/` | Academe 新增 | 集中保存 Academe 的 SVG、PNG 与 favicon 品牌资源，作为全站品牌资源的单一来源 | 极低 | 保留规范命名的原始资产；公共兼容入口仅引用本目录 |
+| `apps/web/tests/academe-branding.test.mjs` | Academe 新增 | 验证页面水印显示 Academe 品牌、使用站内链接并加载独立品牌资源 | 低 | 与水印品牌补丁一起保留；上游提供全局品牌配置后可删除 |
+| `apps/web/tests/academe-email-branding.test.mjs` | Academe 新增 | 验证前端服务器邮件的 Logo、主题、正文、按钮与默认发件人使用 Academe | 低 | 与邮件品牌补丁一起保留；上游提供平台品牌配置后可删除 |
+| `apps/api/src/services/email/academe_brand.py` | Academe 新增 | 集中保存 API 邮件的 Academe 默认 Logo HTML 与站内帮助地址 | 极低 | 上游提供邮件品牌配置后删除，并移除 `emails.py` 的最小接入点 |
+| `apps/api/src/tests/services/test_academe_email_brand.py` | Academe 新增 | 验证独立品牌常量及 API 欢迎邮件实际使用 Academe Logo 与站内链接 | 低 | 与 API 邮件品牌适配器一起保留或回退 |
 
 ## 5. 已修改的上游源文件
 
@@ -72,6 +77,13 @@
 | `apps/web/lib/i18n.ts` | 多处语言菜单直接调用 `changeLanguage`，未记录用户主动选择，刷新后会被组织默认语言覆盖 | 用户发起的语言切换默认写入个人选择标记，并允许系统同步显式关闭该行为 | 中 | 恢复单参数函数，并同时恢复 `OrgLanguageSync.tsx` 调用 | `🐛 Remember the selected interface language` |
 | `apps/web/components/Contexts/OrgLanguageSync.tsx` | 组织默认语言同步与用户主动切换共用同一函数，需要区分来源 | 传入 `userInitiated: false`，确保组织默认值不会伪装成个人选择 | 低 | 恢复单参数调用，并同时恢复 `i18n.ts` | `🐛 Remember the selected interface language` |
 | `apps/web/components/Auth/AuthBrandingPanel.tsx` | 默认认证品牌背景需要接入 Academe 独立动画并简化中央品牌展示；认证路由与表单逻辑均不应改变 | 接入独立动画组件，以大字号 `Academe` 流光标题替代中央组织 Logo 框和普通组织名称；自定义图片与 Unsplash 背景继续使用原逻辑 | 低 | 恢复中央 Logo 与组织名称 JSX，并删除 Academe 视觉组件接入 | `✨ Add animated authentication visual` |
+| `apps/web/components/Footers/LegalFooters.tsx` | 登录注册协议文案仍从多语言资源显示 LearnHouse 品牌 | 仅在共享认证页脚出口将 LearnHouse 规范为 Academe；条款与隐私链接逻辑不变 | 低 | 删除 `termsText` 规范化并恢复原内联翻译调用 | `🎨 Apply Academe branding across site and email` |
+| `apps/web/components/Objects/Watermark.tsx` | LearnHouse 水印与外链不符合 Academe 品牌 | 仅替换为 `Powered by Academe`、Academe 图标和站内首页链接；保留原显示权限与套餐判断 | 低 | 恢复原文案、`lrn-text.svg` 和 LearnHouse 外链 | `🎨 Apply Academe branding across site and email` |
+| `apps/web/public/lrn.svg`、`lrn-dash.svg`、`lrn-text.svg`、`favicon.ico` | 多个上游页面硬编码旧公共资源路径，逐页接入会扩大冲突面 | 保留旧 URL 作为兼容入口，统一映射到 `academe-brand/` 内的 Academe 资产 | 低 | 恢复上游四个资源文件；无需回退页面源码 | `🎨 Apply Academe branding across site and email` |
+| `apps/api/src/services/email/translations.py`、`sender.py` | 多语言邮件正文、主题、提醒邮件与默认发件人仍显示 LearnHouse | 在唯一翻译出口统一品牌名，并把缺少部署配置时的内置发件人回退值改为 Academe；不批量修改各语言字典 | 低 | 删除翻译出口的品牌归一化并恢复默认发件人常量 | `🎨 Apply Academe branding across site and email` |
+| `apps/api/src/tests/services/test_email_translations.py`、`test_email_utils_service.py`、`test_emails_service.py` | 防止邮件品牌名或默认发件人在上游同步后回退 | 增加跨语言、生命周期提醒、完整邮件渲染与默认发件人回归断言；保留显式自定义发件人能力 | 低 | 与邮件品牌补丁一并回退 | `🎨 Apply Academe branding across site and email` |
+| `apps/api/src/services/users/emails.py` | API 邮件默认 Logo 与帮助回退仍指向 LearnHouse | 导入 Academe 独立常量、替换帮助 URL 常量，并在旧 SVG 定义结束后覆盖默认 Logo；保留上游 SVG 原文 | 低 | 删除导入、恢复 Academy URL，并删除默认 Logo 覆盖两行 | `🎨 Apply Academe branding across site and email` |
+| `apps/web/components/Emails/LearnHouseEmail.tsx`、`services/emails/resend.ts`、`transactional.ts`、`services/billing/emails.ts` | 前端服务器邮件通道仍输出 LearnHouse Logo、文案、链接与默认发件人 | 仅替换收件人可见品牌和欢迎按钮目标；保留组件/API 名及现有发信地址 | 中 | 恢复 7 处显示字符串与 Logo URL | `🎨 Apply Academe branding across site and email` |
 
 ## 6. 新增或修改内容的登记规则
 
@@ -129,7 +141,39 @@
 - 新增隔离文件：`apps/web/components/Auth/AcademeAuthVisual.tsx`、`apps/web/tests/auth-visual.test.mjs`。
 - 动画行为：使用 WebGL2 渲染动态背景，并为固定文字 `Academe` 添加循环高光扫过效果；不支持 WebGL2 时保留 CSS 渐变；系统启用“减少动态效果”时背景只绘制静态帧且标题停止扫光。
 - 可见性修正：文字颜色与 `-webkit-text-fill-color` 必须保持透明，否则不透明字形会遮住背后的移动渐变，使扫光动画存在但肉眼不可见。
+- 最低亮度修正：为文字增加 45% 白色恒定底色，高光带移出字形时仍保持可见，扫过时再提升至峰值亮度。
 - 回归验证：`bun test tests/auth-visual.test.mjs` 必须证明动画画布与 `Academe` 流光标题被渲染，旧组织名称和中央组织 Logo 图片不再输出；生产构建必须通过。
 - 冲突风险：低。现有文件只有一个小型接入点，主要实现位于 Academe 独立文件。
 - 回退方式：移除品牌面板中的导入、启用条件和 JSX 分支，再删除两个隔离文件。
 - 上游同步检查：若上游提供可配置的等价认证动画，应验证自定义背景、WebGL 降级和减少动态效果后，删除 Academe 组件及接入点。
+
+### `🎨 Apply Academe site branding`
+
+- 目标：使用用户提供的莲花渐变图标统一 Academe 网站品牌，并将可见水印改为 `Powered by Academe`。
+- 最小改动策略：不逐一修改所有引用 `/lrn*.svg` 的页面；将规范化原始资产集中到 `apps/web/public/academe-brand/`，旧公共 URL 只保留为兼容入口。
+- 自有资产：`academe-logo.svg`、`academe-logo-2048.png`、`academe-favicon.ico`。
+- 修改文件：三个旧 SVG 公共入口、根 favicon，以及 `apps/web/components/Objects/Watermark.tsx`；水印继续沿用上游的显示权限和套餐逻辑。
+- 主页尺寸适配：`apps/web/components/Objects/Menus/OrgMenu.tsx` 原按横向字标设置 `133×40` 且高度自适应；方形莲花图标因此膨胀并溢出导航栏，现仅将该回退 Logo 固定为 `40×40` 并使用 `object-contain`。
+- 缓存适配：该导航 Logo 使用 `unoptimized` 直接请求 `/lrn-text.svg`；否则 `next/image` 的旧优化 URL 可能继续命中浏览器缓存并显示替换前的 LearnHouse 图像。
+- 明确不修改：组织 Logo/Favicon 上传接口及 SVG 安全限制、认证逻辑、后台 API、数据库和套餐判断。
+- 认证协议品牌：共享 `AuthFooter` 在显示出口将翻译中的 LearnHouse 规范为 Academe，不批量修改所有语言文件，不改变条款与隐私链接目标。
+- 回归验证：水印必须显示 `Powered by Academe`、链接到 `/` 并通过公开白名单中的 `/lrn.svg` 兼容入口加载集中保存的 Academe 图标；生产构建必须能解析所有兼容资源。
+- 冲突风险：低。只有一个 React 源文件的小型展示修改；旧资源路径即使随上游变化，也可直接重新建立兼容映射。
+- 回退方式：恢复四个上游公共资源和原 Watermark 内容，删除 `academe-brand/` 及对应测试。
+- 上游同步检查：若上游新增全局平台品牌配置，应迁移到上游配置并删除兼容入口与 Watermark 补丁。
+
+### `✉️ Normalize Academe email branding`
+
+- 根因：API 事务邮件和生命周期提醒的 20 种语言资源，以及 Web 服务器发送的欢迎/账单邮件，仍包含 LearnHouse；缺少部署级发件人配置时，代码内置回退名称也为 LearnHouse。
+- 用户影响：邮件主题、正文、页脚或发件人可能暴露旧品牌，与网站 Academe 品牌不一致。
+- 最小改动策略：所有邮件翻译最终都经过 `t()`，因此只在该唯一出口把品牌名规范为 Academe，不改动数千行上游翻译字典；默认发件人只改一个常量。
+- 修改文件：`apps/api/src/services/email/translations.py`、`apps/api/src/services/email/sender.py`；`apps/web/components/Emails/LearnHouseEmail.tsx`、`apps/web/services/emails/resend.ts`、`transactional.ts`、`apps/web/services/billing/emails.ts`。
+- 新增隔离测试：`apps/web/tests/academe-email-branding.test.mjs`。
+- 上游测试调整：`apps/api/src/tests/services/test_email_translations.py`、`test_email_utils_service.py`、`test_emails_service.py`。
+- 明确不修改：`get_learnhouse_config`、`LEARNHOUSE_*` 环境变量、Redis key、退订 token salt 等兼容性技术标识；组织或部署显式配置的自定义发件人仍原样生效。
+- Web 邮件通道：共享邮件 Logo 改为 Academe 公共 Logo，底部署名、欢迎/账单文案和默认显示发件人改为 Academe，欢迎按钮指向 Academe 主页；旧发信邮箱地址作为投递技术配置保留。
+- API 邮件收尾：新增独立 `academe_brand.py`；`emails.py` 仅导入两个常量、把 Academy 回退地址指向 Academe，并在旧上游 SVG 定义结束后覆盖默认 Logo。保留旧 SVG 原文，避免形成大段删除 diff。
+- 回归验证：跨语言事务邮件与生命周期提醒输出不得包含 LearnHouse；无发件人配置时必须回退为 `Academe <address>`；显式自定义发件人必须保持可配置。
+- 当前验证（2026-09-05）：API 邮件目标测试 113/113 通过；Web 品牌目标测试 7/7 通过；生产容器健康；Resend 品牌测试邮件状态为 delivered。
+- 冲突风险：API 侧低，Web 邮件侧中；API 生产代码仅两个集中位置，Web 邮件仅替换 7 处展示值，不重命名组件或接口。
+- 回退方式：恢复翻译出口的直接返回值和 `DEFAULT_SENDER_NAME` 常量，并回退对应测试。

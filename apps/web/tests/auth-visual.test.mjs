@@ -47,5 +47,6 @@ describe('Academe authentication visual', () => {
     expect(html).not.toContain('SCI Organization')
     expect(html).not.toContain('/org-logo.png')
     expect(html).toContain('-webkit-text-fill-color: transparent')
+    expect(html).toContain('background-color: rgba(255, 255, 255, 0.45)')
   })
 })

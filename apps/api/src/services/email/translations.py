@@ -986,6 +986,7 @@ def t(lang: str | None, key: str, **fmt) -> str:
     bundle = EMAIL_TRANSLATIONS.get(code, EMAIL_TRANSLATIONS[DEFAULT_LANGUAGE])
     template = bundle.get(key) or EMAIL_TRANSLATIONS[DEFAULT_LANGUAGE].get(key, key)
     try:
-        return template.format(**fmt)
+        rendered = template.format(**fmt)
     except (KeyError, IndexError):
-        return template
+        rendered = template
+    return rendered.replace("LearnHouse", "Academe")

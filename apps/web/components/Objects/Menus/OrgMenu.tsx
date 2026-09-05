@@ -560,11 +560,13 @@ const CopilotMenuButton = ({
 const LearnHouseLogo = ({ logoFilter }: { logoFilter: string }) => {
   return (
     <Image
+      unoptimized
       src="/lrn-text.svg"
-      alt="LearnHouse logo"
-      width={133}
+      alt="Academe logo"
+      width={40}
       height={40}
-      style={{ height: 'auto', filter: logoFilter }}
+      className="h-10 w-10 object-contain"
+      style={{ filter: logoFilter }}
     />
   )
 }

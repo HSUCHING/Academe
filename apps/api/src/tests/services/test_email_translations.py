@@ -32,6 +32,11 @@ class TestNormalizeLanguage:
 
 
 class TestT:
+    def test_normalizes_platform_brand_in_transactional_and_nudge_copy(self):
+        assert "Academe" in t("en", "account_creation.subject", username="Martin")
+        assert "LearnHouse" not in t("zh", "email_verification.body", username="Martin")
+        assert "Academe" in t("zh", "nudge.reactivation.whats_changed.subject")
+
     def test_translates_to_target_language(self):
         # Sanity check: at least one well-known phrase resolves correctly.
         assert t("fr", "invitation.heading") == "Vous êtes invité !"
@@ -40,9 +45,7 @@ class TestT:
         assert t("klingon", "invitation.heading") == EMAIL_TRANSLATIONS["en"]["invitation.heading"]
 
     def test_falls_back_to_english_when_key_missing_in_locale(self):
-        # Insert a locale that's missing a specific key, then look it up;
-        # we expect the English bundle's value back.
-        assert t("fr", "academy_link_text") == EMAIL_TRANSLATIONS["fr"]["academy_link_text"]
+        assert t("fr", "academy_link_text") == "Academe Academy"
 
     def test_returns_key_itself_when_key_unknown_everywhere(self):
         # No locale has this key — t() must not raise.
