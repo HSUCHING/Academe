@@ -38,6 +38,7 @@
 | `AGENTS.md` | 自建 Agent 规则 | 强制后续 Agent 遵守上游优先、最小源码修改、完整登记与验证要求 | 提交 | 极低 |
 | `ACADEME_CUSTOMIZATIONS.md` | 自建文档 | 记录自有内容、源码修改和上游同步约束 | 提交 | 极低 |
 | `ACADEME_INSTALLATION_STATUS.md` | 自建文档 | 记录部署过程、当前状态、验收结果和恢复点 | 提交；不得含密钥 | 极低 |
+| `docs/operations/2026-09-05-email-production-hardening-backlog.md` | 自建运维文档 | 记录邮件身份、投递安全和兼容性的未实施任务、优先级与验收标准 | 提交；不得含密钥 | 极低 |
 | `deploy/` | 自建目录 | Academe 生产部署层 | 提交非敏感文件 | 极低 |
 | `deploy/docker-compose.yml` | 自建配置 | 从当前源码构建并运行 App、PostgreSQL 和 Redis | 提交 | 极低 |
 | `deploy/.env.example` | 自建模板 | 记录运行时变量名和安全示例 | 提交；不得含真实值 | 极低 |
