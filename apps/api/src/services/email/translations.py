@@ -984,9 +984,8 @@ def t(lang: str | None, key: str, **fmt) -> str:
     """Translate `key` for `lang`, falling back to English on missing locale or key."""
     code = normalize_language(lang)
     bundle = EMAIL_TRANSLATIONS.get(code, EMAIL_TRANSLATIONS[DEFAULT_LANGUAGE])
-    template = bundle.get(key) or EMAIL_TRANSLATIONS[DEFAULT_LANGUAGE].get(key, key)
+    template = (bundle.get(key) or EMAIL_TRANSLATIONS[DEFAULT_LANGUAGE].get(key, key)).replace("LearnHouse", "Academe")
     try:
-        rendered = template.format(**fmt)
+        return template.format(**fmt)
     except (KeyError, IndexError):
-        rendered = template
-    return rendered.replace("LearnHouse", "Academe")
+        return template

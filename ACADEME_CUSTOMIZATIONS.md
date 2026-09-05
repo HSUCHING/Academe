@@ -45,6 +45,8 @@
 | `deploy/.env` | 本机敏感配置 | 保存正式运行时环境变量和密钥 | 永不提交，必须被忽略 | 无合并风险 |
 | `deploy/nginx/academe.conf` | 自建配置 | 保存 Academe 域名的 Nginx 配置源文件 | 提交 | 极低 |
 | `deploy/tinybird/` | 自建配置 | 从上游 `events.datasource` 生成临时部署文件，并追加 Academe 最小权限 Token 声明 | 提交配置与生成脚本；永不提交 `.tinyb` 或 `generated/` | 极低 |
+| `deploy/sysctl/` | 自建宿主机配置 | 保存 Redis 所需的可审计 sysctl 配置源；安装目标为 `/etc/sysctl.d/99-academe-redis.conf` | 提交 | 极低 |
+| `deploy/backup/` | 自建备份工具 | 生成并校验 PostgreSQL/内容本机备份，保存每日 systemd 调度源文件 | 提交脚本、测试和单元；运行备份永不提交 | 极低 |
 | `runtime-data/` | 自建运行目录 | PostgreSQL、Redis、上传内容和备份 | 仅提交内部 `.gitignore`，其余永不提交 | 无合并风险 |
 | `/home/dev/.local/share/Trash/files/Academe-data` | 已迁移旧数据副本 | 原外部数据目录的可恢复回收站副本 | 永不提交；确认无需恢复后可清空 | 无合并风险 |
 
@@ -168,13 +170,39 @@
 - 根因：API 事务邮件和生命周期提醒的 20 种语言资源，以及 Web 服务器发送的欢迎/账单邮件，仍包含 LearnHouse；缺少部署级发件人配置时，代码内置回退名称也为 LearnHouse。
 - 用户影响：邮件主题、正文、页脚或发件人可能暴露旧品牌，与网站 Academe 品牌不一致。
 - 最小改动策略：所有邮件翻译最终都经过 `t()`，因此只在该唯一出口把品牌名规范为 Academe，不改动数千行上游翻译字典；默认发件人只改一个常量。
+- 动态值保护：品牌规范化在模板格式化之前执行，避免把用户、课程或机构真实名称中的 `LearnHouse` 错误改成 Academe；生产逻辑只调整两行顺序。
 - 修改文件：`apps/api/src/services/email/translations.py`、`apps/api/src/services/email/sender.py`；`apps/web/components/Emails/LearnHouseEmail.tsx`、`apps/web/services/emails/resend.ts`、`transactional.ts`、`apps/web/services/billing/emails.ts`。
 - 新增隔离测试：`apps/web/tests/academe-email-branding.test.mjs`。
 - 上游测试调整：`apps/api/src/tests/services/test_email_translations.py`、`test_email_utils_service.py`、`test_emails_service.py`。
 - 明确不修改：`get_learnhouse_config`、`LEARNHOUSE_*` 环境变量、Redis key、退订 token salt 等兼容性技术标识；组织或部署显式配置的自定义发件人仍原样生效。
 - Web 邮件通道：共享邮件 Logo 改为 Academe 公共 Logo，底部署名、欢迎/账单文案和默认显示发件人改为 Academe，欢迎按钮指向 Academe 主页；旧发信邮箱地址作为投递技术配置保留。
 - API 邮件收尾：新增独立 `academe_brand.py`；`emails.py` 仅导入两个常量、把 Academy 回退地址指向 Academe，并在旧上游 SVG 定义结束后覆盖默认 Logo。保留旧 SVG 原文，避免形成大段删除 diff。
-- 回归验证：跨语言事务邮件与生命周期提醒输出不得包含 LearnHouse；无发件人配置时必须回退为 `Academe <address>`；显式自定义发件人必须保持可配置。
+- 回归验证：跨语言事务邮件与生命周期提醒的固定品牌不得包含 LearnHouse，动态值必须保持原文；无发件人配置时必须回退为 `Academe <address>`；完整邮件相关测试 634/634 通过。
 - 当前验证（2026-09-05）：API 邮件目标测试 113/113 通过；Web 品牌目标测试 7/7 通过；生产容器健康；Resend 品牌测试邮件状态为 delivered。
 - 冲突风险：API 侧低，Web 邮件侧中；API 生产代码仅两个集中位置，Web 邮件仅替换 7 处展示值，不重命名组件或接口。
 - 回退方式：恢复翻译出口的直接返回值和 `DEFAULT_SENDER_NAME` 常量，并回退对应测试。
+
+### `🔧 Tune Redis host memory policy`
+
+- 根因：Redis 启动日志提示宿主机未启用 `vm.overcommit_memory=1`，这会增加后台保存或复制在内存压力下失败的风险。
+- 最小改动策略：不修改任何上游应用源码或 Compose 服务定义；只在 Academe 自建的 `deploy/sysctl/` 保存配置源，并安装到宿主机标准 sysctl 目录。
+- 新增隔离文件：`deploy/sysctl/99-academe-redis.conf`，唯一设置为 `vm.overcommit_memory = 1`。
+- 宿主机状态：配置安装于 `/etc/sysctl.d/99-academe-redis.conf`，属主 `root:root`、权限 `0644`，并已应用到当前内核。
+- 验证结果（2026-09-05）：当前内核值为 `1`；仓库配置与宿主机配置逐字节一致；Redis 为 `healthy`，重启次数为 0，近期日志没有相关异常。
+- 冲突风险：极低。全部仓库改动位于 Academe 自建部署目录和文档，不接触上游源码。
+- 回退方式：删除宿主机 `/etc/sysctl.d/99-academe-redis.conf`，按服务器原策略恢复内核值；如不再需要可同时删除仓库配置源。回退前应评估 Redis 后台保存风险。
+- 上游同步检查：该配置属于宿主机运维层，拉取上游代码时正常保留；仅当上游部署文档或基础设施明确提供等价配置时再去重。
+
+### `💾 Automate verified production backups`
+
+- 目标：为 PostgreSQL 和上传内容建立每日、可验证的本机备份，降低单机故障和误操作造成的数据损失。
+- 最小改动策略：全部实现位于 Academe 自建 `deploy/backup/` 与文档，不修改 `apps/`、根 Dockerfile 或 Compose。
+- 新增隔离文件：`backup.sh`、`verify.sh`、三个 Shell 合同测试、systemd service/timer 和精确安装脚本。
+- 安全边界：不读取或归档 `deploy/.env`；数据库凭据只在 PostgreSQL 容器内部使用；content 只读挂载；新备份失败时不清理历史成功备份。
+- 运营策略：每日 03:15、随机延迟最多 15 分钟，本机保留 14 天；每周状态/容量检查、每月离线校验、每季度恢复演练。
+- 备份验证（2026-09-05）：首份数据库与内容备份已发布，SHA-256、`pg_restore --list` 和 `tar -tzf` 均通过；timer 为 enabled/active；三个生产容器 healthy 且重启次数为 0。
+- 恢复验证（2026-09-05）：在无网络、无端口的临时 PostgreSQL 恢复 dump，61 张业务表和逐表行数一致；内容解包后的相对路径与 SHA-256 一致；临时资源已删除。
+- 已知剩余项：尚无服务器外副本，后续季度恢复演练仍需持续执行，因此不能宣称异机灾难恢复闭环完成。
+- 冲突风险：极低。仅新增 Academe 自有部署文件和文档。
+- 回退方式：先停用并删除已安装的两个 systemd 单元，再删除仓库备份工具；已有备份默认保留。
+- 上游同步检查：拉取上游时保留；若上游提供等价方案，先做恢复对比后再去重。

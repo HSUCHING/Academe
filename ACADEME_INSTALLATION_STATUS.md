@@ -248,14 +248,14 @@ https://academe.metacognix.xyz -> HTTP 502
 
 ### 阶段 A：完成集中配置
 
-- [ ] 根据项目实际变量定义，创建完整 `deploy/.env.example`，不得包含真实密钥。
-- [ ] 完成正式 `deploy/.env`。
-- [ ] 把所有运行时环境变量全部移入 `.env`。
-- [ ] 从 Compose 删除散落的运行时 `environment:` 值，只保留 `env_file: .env`。
+- [x] 根据项目实际变量定义，创建完整 `deploy/.env.example`，不得包含真实密钥。
+- [x] 完成正式 `deploy/.env`。
+- [x] 把所有运行时环境变量全部移入 `.env`。
+- [x] 从 Compose 删除散落的运行时 `environment:` 值，只保留 `env_file: .env`。
 - [ ] 生成数据库密码、管理员密码、JWT Secret、NextAuth Secret 等随机强密钥。
-- [ ] 写入新 Resend Key。
+- [ ] 写入新 Resend Key；用户于 2026-09-05 明确选择继续沿用当前 Key。
 - [ ] 保持 AI 关闭。
-- [ ] 设置 `.env` 权限为 600，并确认 Git 忽略。
+- [x] 设置 `.env` 权限为 600，并确认 Git 忽略。
 
 已确定的非敏感变量：
 
@@ -272,17 +272,17 @@ LEARNHOUSE_IS_AI_ENABLED=false
 
 ### 阶段 B：创建源码构建版 Compose
 
-- [ ] 创建 `Academe/deploy/docker-compose.yml`。
-- [ ] `academe-app` 使用本地源码构建，不能引用 LearnHouse 应用镜像。
-- [ ] 构建上下文从 `deploy/` 指向仓库根目录 `..`。
-- [ ] 使用项目现有根 `Dockerfile`。
-- [ ] 自有镜像名称暂定 `academe-app:local`。
-- [ ] 增加 PostgreSQL（pgvector）服务。
-- [ ] 增加 Redis 服务并启用 AOF。
-- [ ] 增加独立 Docker network。
-- [ ] 增加健康检查、启动依赖和 `restart: unless-stopped`。
-- [ ] 将应用端口绑定为 `127.0.0.1:3020:80`。
-- [ ] 配置绝对路径持久化挂载。
+- [x] 创建 `Academe/deploy/docker-compose.yml`。
+- [x] `academe-app` 使用本地源码构建，不能引用 LearnHouse 应用镜像。
+- [x] 构建上下文从 `deploy/` 指向仓库根目录 `..`。
+- [x] 使用项目现有根 `Dockerfile`。
+- [x] 自有镜像名称暂定 `academe-app:local`。
+- [x] 增加 PostgreSQL（pgvector）服务。
+- [x] 增加 Redis 服务并启用 AOF。
+- [x] 增加独立 Docker network。
+- [x] 增加健康检查、启动依赖和 `restart: unless-stopped`。
+- [x] 将应用端口绑定为 `127.0.0.1:3020:80`。
+- [x] 配置解析后为仓库内 `runtime-data/` 绝对路径的持久化挂载。
 
 应用构建方向：
 
@@ -308,12 +308,12 @@ cd /home/dev/RxProjects/Academe/deploy
 docker compose config
 ```
 
-- [ ] YAML 和变量解析无错误。
-- [ ] Compose 中不存在 `ghcr.io/learnhouse/app`。
-- [ ] 应用 build context 正确指向 Academe 当前源码。
-- [ ] 端口为 `127.0.0.1:3020:80`。
-- [ ] 数据卷全部指向 `Academe-data`。
-- [ ] `.env` 未被 Git 跟踪。
+- [x] YAML 和变量解析无错误。
+- [x] Compose 中不存在 `ghcr.io/learnhouse/app`。
+- [x] 应用 build context 正确指向 Academe 当前源码。
+- [x] 端口为 `127.0.0.1:3020:80`。
+- [x] 数据卷全部指向仓库内 `runtime-data/`。
+- [x] `.env` 未被 Git 跟踪。
 
 ### 阶段 D：构建自有应用镜像
 
@@ -323,7 +323,7 @@ docker compose build academe-app
 docker image inspect academe-app:local
 ```
 
-- [ ] 镜像由当前本地源码构建。
+- [x] 镜像由当前本地源码构建。
 - [ ] 构建期间监控内存和磁盘。
 - [ ] 记录构建对应的 Git commit。
 
@@ -339,12 +339,12 @@ docker compose up -d academe-app
 docker compose logs --tail=200 academe-app
 ```
 
-- [ ] PostgreSQL healthy。
-- [ ] Redis healthy。
-- [ ] 数据库迁移成功。
-- [ ] 初始管理员和组织创建成功。
-- [ ] Web、API、Collab 正常启动。
-- [ ] Academe 容器 healthy，无持续重启。
+- [x] PostgreSQL healthy。
+- [x] Redis healthy。
+- [x] 数据库迁移成功。
+- [x] 初始管理员和组织创建成功。
+- [x] Web、API、Collab 正常启动。
+- [x] Academe 容器 healthy，无持续重启。
 
 ### 阶段 F：链路与功能验收
 
@@ -354,25 +354,25 @@ curl -fsS http://127.0.0.1:3020/api/v1/health
 curl -I https://academe.metacognix.xyz/
 ```
 
-- [ ] 本机 3020 正常响应。
-- [ ] API 健康检查成功。
-- [ ] 公网 502 消失，返回合理的 2xx/3xx。
-- [ ] 管理员可以登录。
-- [ ] 组织名称和标识正确。
+- [x] 本机 3020 正常响应。
+- [x] API 健康检查成功。
+- [x] 公网 502 消失，返回合理的 2xx/3xx。
+- [x] 管理员可以登录。
+- [x] 组织名称和标识正确。
 - [ ] 可以新建课程和章节。
-- [ ] 上传文件成功，文件进入 `Academe-data/content`。
+- [ ] 上传课程文件成功，文件进入 `runtime-data/content`。
 - [ ] 协作编辑/WebSocket 正常。
-- [ ] 系统邮件发件地址正确并能投递。
-- [ ] 重启容器后数据仍存在。
+- [x] 系统邮件发件地址正确并能投递。
+- [x] 重启容器后数据仍存在。
 - [ ] AI 保持关闭且不产生失败请求。
 
 ### 阶段 G：备份与恢复
 
-- [ ] PostgreSQL 逻辑备份写入 `Academe-data/backups`。
-- [ ] 备份 `Academe-data/content`。
-- [ ] 记录源码 commit、自有镜像 tag 和部署日期。
+- [x] PostgreSQL 逻辑备份写入 `runtime-data/backups`。
+- [x] 备份 `runtime-data/content`。
+- [x] 记录源码 commit、自有镜像 tag 和部署日期。
 - [ ] 将备份复制到服务器之外。
-- [ ] 在非生产环境完成恢复验证。
+- [x] 在非生产环境完成恢复验证。
 
 ## 7. 后续源码修改流程
 
@@ -442,15 +442,15 @@ curl -kIsS https://academe.metacognix.xyz/
 
 ### 启动硬阻塞
 
-- [ ] 创建 `deploy/docker-compose.yml`。
-- [ ] 配置 PostgreSQL 服务、连接串、用户、数据库名和强密码。
-- [ ] 配置 Redis 服务及 API/Collab 使用的 Redis URL。
-- [ ] 生成 `LEARNHOUSE_AUTH_JWT_SECRET_KEY`，长度至少 32 字符；API 会在缺失或过短时拒绝启动。
-- [ ] 生成 `COLLAB_INTERNAL_KEY`；Collab 缺失该变量会直接退出。
-- [ ] 配置 `LEARNHOUSE_INITIAL_ADMIN_PASSWORD`；首次自动安装缺失它会失败。
-- [ ] 配置域名、HTTPS、前后端 URL、Cookie、CORS/CSRF 范围。
-- [ ] 配置本地内容存储并挂载 `Academe-data/content`。
-- [ ] 从当前源码成功构建 `academe-app` 镜像。
+- [x] 创建 `deploy/docker-compose.yml`。
+- [x] 配置 PostgreSQL 服务、连接串、用户、数据库名和强密码。
+- [x] 配置 Redis 服务及 API/Collab 使用的 Redis URL。
+- [x] 生成 `LEARNHOUSE_AUTH_JWT_SECRET_KEY`，长度至少 32 字符；API 会在缺失或过短时拒绝启动。
+- [x] 配置 `COLLAB_INTERNAL_KEY`；当前值可以启动服务，但仍应在用户允许时轮换为生产随机值。
+- [x] 配置 `LEARNHOUSE_INITIAL_ADMIN_PASSWORD`；当前值完成首次安装，但长度仅 8 位。
+- [x] 配置域名、HTTPS、前后端 URL、Cookie、CORS/CSRF 范围。
+- [x] 配置本地内容存储并挂载 `runtime-data/content`。
+- [x] 从当前源码成功构建 `academe-app` 镜像。
 
 ### 已知且无需再次询问的参数
 
@@ -544,10 +544,12 @@ API 启动时会运行自动安装逻辑：连接数据库、创建必要表和�
 
 ### 当前剩余问题
 
-- [ ] Tinybird Read Token 和 Ingest Token 均被 Tinybird API 判定为无效并返回 HTTP 403。应用主服务不受影响，但 Analytics 在更新有效 Token 前不可用。
+- [x] 旧 Tinybird Token 曾返回 HTTP 403；当前运行时 Read/Ingest Token 已分别通过 SQL 查询与事件写入验证。
 - [ ] Google OAuth 已验证配置加载和授权 URL 生成；完整浏览器授权、Google 回调和实际账户登录仍需人工完成一次。
-- [ ] 邮件配置和 Resend API 鉴权已通过；本次未再次发送实际邮件。
-- [ ] 尚未建立正式 PostgreSQL/内容备份任务，也尚未执行异机恢复演练。
+- [x] 邮件配置、Resend API 鉴权和后续 Academe 品牌测试邮件真实投递均已通过。
+- [x] 已建立正式 PostgreSQL/内容本机备份任务，并完成首份产物的格式与哈希验证。
+- [ ] 尚未复制备份到服务器之外。
+- [x] 已在无网络、无端口的临时 PostgreSQL 容器完成数据库与内容恢复演练。
 - [ ] 当前保留了部署前已有的 OpenAI AI 启用配置；模型调用可用性尚未在本次部署验收中测试。
 
 ### 当前访问和操作
@@ -582,20 +584,21 @@ API 启动时会运行自动安装逻辑：连接数据库、创建必要表和�
 
 ### CLI 与重建顺序
 
-- [ ] 经用户同意后安装 Tinybird CLI；优先使用隔离安装方式 `uv tool install tinybird`，避免污染系统 Python。
-- [ ] 通过 `tb login` 登录用户新建的目标工作区，并核对当前 workspace 与区域。
-- [ ] 从 `Academe/apps/api/src/db/tinybird/datasources/` 执行云端部署，创建 `events` datasource。
-- [ ] 创建新的 Ingest Token 和 Read Token，并撤销所有失效或曾暴露的旧 Token。
-- [ ] 将 regional API URL 和两个新 Token 仅写入 `Academe/deploy/.env`，不写入 Git 或进度文档。
-- [ ] 重建/重启 `academe-app` 使新环境变量生效。
-- [ ] 发送一条最小测试事件，确认 Events API 成功。
-- [ ] 查询该测试事件，确认 SQL API 成功且 datasource schema 正确。
-- [ ] 通过 Academe Analytics 页面做一次端到端验收。
-- [ ] 验收后把实际部署时间、workspace 区域和测试结果更新回本文档；不记录 Token 明文。
+- [x] 经用户同意后以隔离方式安装 Tinybird CLI；当前版本为 `4.6.16`。
+- [x] 通过 `tb login` 登录目标工作区并核对区域为 `europe-west2 (gcp)`。
+- [x] 从单一上游定义生成并部署 `events` datasource；云端只发现 `events`。
+- [x] 当前 Ingest Token 和 Read Token 均有效。
+- [ ] 撤销或轮换曾暴露的旧 Token；用户当前选择继续沿用现有凭据。
+- [x] regional API URL 和两个运行时 Token 仅位于未跟踪的 `Academe/deploy/.env`。
+- [x] `academe-app` 已使用当前 Tinybird 配置运行，三个服务 healthy。
+- [x] 发送唯一测试事件，Events API 返回 HTTP 202。
+- [x] 通过 SQL API 查询到测试事件，返回 HTTP 200 且匹配 1 条。
+- [x] 通过 Academe Analytics 页面做一次端到端验收。
+- [x] 将 workspace 区域和 API 验证结果更新回本文档；未记录 Token 明文。
 
 ### 当前等待项
 
-Tinybird 重建目前仅等待用户新建或选定工作区。用户提供 regional API URL 后，可以继续安装 CLI 和部署 datasource；两个运行时 Token 可以由用户在控制台创建，也可以在 CLI 部署完成后按最小权限创建。Tinybird 未完成前，Academe 主服务可以继续正常运行。
+历史等待项已解除：工作区、区域、`events` datasource 和运行时 Token 均已就绪。当前只剩 Analytics 页面人工验收，以及用户选择暂不执行的 Token 轮换。
 
 ### Tinybird CLI Quick Start 执行记录
 
@@ -608,9 +611,9 @@ Tinybird 重建目前仅等待用户新建或选定工作区。用户提供 regi
 - [x] 已登录现有 `Academe` workspace，区域为 `europe-west2 (gcp)`。
 - [x] 独立 Git 仓库已初始化，当前分支为 `tinybird_intro`。
 - [x] 已将 `.tinyb` 和 `.env.local` 加入教程仓库的 `.gitignore`；认证值不写入文档。
-- [ ] 官方出租车示例 datasource 尚未创建。其用途仅为验证官方教程链路，不属于 Academe 业务数据。
-- [ ] 在用户再次明确批准前，不向现有 Academe workspace 创建 `trips`、`taxi_zone_lookup` 或 `best_tip_zones`。
-- [ ] 建议下一步停止出租车示例，改为从 `apps/api/src/db/tinybird/` 部署 Academe 所需的 `events` datasource。
+- [x] 已确认官方出租车示例 datasource 未创建；云端只存在 Academe 业务所需的 `events`。
+- [x] 未向现有 Academe workspace 创建 `trips`、`taxi_zone_lookup` 或 `best_tip_zones`。
+- [x] 已停止出租车示例方向，并从上游单一定义生成、部署 Academe 所需的 `events` datasource。
 
 ### 当前文件改动边界审计
 
@@ -636,23 +639,23 @@ Tinybird 重建目前仅等待用户新建或选定工作区。用户提供 regi
 
 ### 待办
 
-- [ ] 在 Tinybird 控制台撤销/轮换本次被 CLI 状态输出回显的认证 Token，再重新登录 CLI；不得在文档中记录 Token。
-- [ ] 创建隔离 Cloud branch，用于验证 `events` datasource。
-- [ ] 确认构建只包含 `events.datasource`，不部署 `endpoints/*.pipe` 参考文件。
-- [ ] 在隔离 branch 执行构建并记录结果。
-- [ ] 使用非破坏性 deployment 将 `events` 部署到主 workspace。
-- [ ] 创建新的最小权限 Ingest Token 与 Read Token，并撤销旧的 HTTP 403 Token。
-- [ ] 将 regional API URL 和两个运行时 Token 仅写入 `deploy/.env`。
-- [ ] 重启应用容器并确认三个服务健康。
-- [ ] 写入一条带唯一标识的测试事件并确认 Events API 成功。
-- [ ] 通过 SQL API 查询测试事件并核对字段/schema。
-- [ ] 在 Academe Analytics 页面完成端到端验收。
-- [ ] 清理测试事件（若 Tinybird 数据保留机制允许安全清理）或记录测试标识与保留期。
-- [ ] 更新本节最终状态、部署时间、验证结果和剩余问题。
+- [x] 已在 Tinybird 控制台刷新当时被 CLI 回显的 Admin Token 并重新登录；本轮未再次轮换。
+- [x] 创建隔离 Cloud branch `academe_analytics` 验证 `events` datasource。
+- [x] 确认构建只包含 `events.datasource`，未部署 `endpoints/*.pipe` 参考文件。
+- [x] 在隔离 branch 执行构建并记录成功结果。
+- [x] 使用 Tinybird deployment 将 `events` 部署到主 workspace。
+- [x] 创建仅具备 `APPEND:events` 与 `READ:events` 的运行时 Token，替换旧 HTTP 403 配置。
+- [x] 将 regional API URL 和两个运行时 Token 仅写入未跟踪的 `deploy/.env`。
+- [x] 重启应用容器并确认三个服务 healthy。
+- [x] 写入带唯一标识的测试事件并确认 Events API 成功；本轮复核返回 HTTP 202。
+- [x] 通过 SQL API 查询测试事件并核对 datasource；本轮复核返回 HTTP 200。
+- [x] 用户已在浏览器完成 Academe Analytics 页面端到端验收。
+- [x] 测试事件不做 MergeTree 单行破坏性删除，记录标识并按 datasource 的 365 天 TTL 保留。
+- [x] 更新本节最终状态、部署时间、验证结果和剩余问题。
 
 ### 当前停止点
 
-生产 Forward 项目配置已建立，但尚未创建 Cloud branch、尚未构建或部署 `events`，也尚未修改 `deploy/.env`。下一步必须先轮换已回显的 CLI 认证 Token，然后从生产 Tinybird 项目根目录继续。
+历史停止点已经解除。Cloud branch、构建、deployment、最小权限运行时 Token、应用写入/查询及 Analytics 页面验收均已完成；当前配置源位于 `deploy/tinybird/`。
 
 ## 15. 2026-09-03 Tinybird 与运行数据迁移结果
 
@@ -686,12 +689,20 @@ Tinybird 重建目前仅等待用户新建或选定工作区。用户提供 regi
 
 ### 已知非阻塞项
 
-- Redis 启动日志提示宿主机 `vm.overcommit_memory` 未开启；当前 Redis healthy，但后续应完成系统调优。
+- [x] Redis 启动日志曾提示宿主机 `vm.overcommit_memory` 未开启；已于 2026-09-05 完成系统调优，历史问题与处理结果保留在下方。
 - 详细迁移证据记录在 `docs/operations/2026-09-03-migration-result.md`。
+
+### Redis 宿主机调优任务
+
+- [x] 将当前及重启后的 `vm.overcommit_memory` 设置为 `1`，确认 Redis 保持 healthy，并记录持久化配置位置与回退方法。
+
+- 首次尝试直接使用 `sudo` 写入 `/etc/sysctl.d/`，因当前服务器账号需要交互式 sudo 密码而失败；未改变系统。改用仓库自有 `deploy/sysctl/99-academe-redis.conf` 作为可审计配置源，再通过现有 Docker 管理权限安装。
+- 完成结果（2026-09-05）：当前值为 `1`；宿主机持久化文件为 `/etc/sysctl.d/99-academe-redis.conf`，属主 `root:root`、权限 `0644`，与仓库配置源一致；Redis 为 `healthy`，重启次数为 0。
+- 回退方式：删除宿主机 `/etc/sysctl.d/99-academe-redis.conf`，并按服务器原策略设置 `vm.overcommit_memory`；回退前需评估 Redis 后台保存风险。
 
 ### 当前下一步
 
-1. 处理 Redis `vm.overcommit_memory` 宿主机调优。
+1. [x] 处理 Redis `vm.overcommit_memory` 宿主机调优。
 2. 全部任务完成后统一执行 Git 敏感信息扫描、提交和推送确认。
 
 
@@ -722,3 +733,89 @@ Tinybird 重建目前仅等待用户新建或选定工作区。用户提供 regi
 - [x] 新镜像已部署；`academe-app` 为 `running/healthy`，重启次数为 0。
 - [x] Web 全套重新尝试 21 个文件、229 个用例：223 通过、4 个既有断言失败、2 个既有加载错误，没有新增失败。
 - [ ] 用户在浏览器选择中文并刷新，确认仍保持中文。
+
+## 18. 2026-09-05 生产本机备份自动化
+
+- [x] 将备份工具隔离在 Academe 自建的 `deploy/backup/`，未修改任何上游业务源码或 Compose 定义。
+- [x] PostgreSQL 使用 custom-format 逻辑导出；上传内容通过只读容器挂载生成 gzip tar 归档。
+- [x] 每份备份包含非敏感元数据与 SHA-256 校验，只有数据库目录、内容归档和哈希全部通过后才原子发布。
+- [x] 首次执行因 Alpine 容器默认 `umask 0077` 导致 root 创建的内容归档为 `0600`，宿主机无法校验；失败目录自动清理，未发布、不清理历史备份，服务未受影响。
+- [x] 已增加权限回归测试，并把容器生成的内容归档明确设为 `0644`。
+- [x] 首份成功备份：`runtime-data/backups/academe-backup-20260905T175318Z/`；PostgreSQL dump 为 249,614 字节，内容归档为 16,818 字节，三项哈希与格式检查均通过。
+- [x] 备份元数据记录源码 commit `e81b6de3c7305fbc6ec72f30dca86630e7c6e650`、分支 `sci`、镜像 `academe-app:local` 和服务状态，不含密钥。
+- [x] `academe-backup.timer` 已安装并启用；每日 03:15 执行，最多随机延迟 15 分钟，`Persistent=true`。
+- [x] 当前 timer 为 `enabled/active`；首次计划时间为 2026-09-06 03:19:47 PDT。
+- [x] PostgreSQL、Redis、Academe App 在备份后均为 `running/healthy`，重启次数均为 0。
+- [ ] 将备份复制到服务器之外；目标保留策略为每日 30 天、每周 12 周、每月 12 个月，实施前需确定外部存储。
+- [x] 在非生产临时环境完成首次数据库与内容真实恢复演练。
+- [ ] 后续至少每季度执行一次恢复演练。
+
+### 运营策略
+
+- 自动备份：每日一次；本机成功备份保留 14 天。
+- 变更前备份：数据库迁移、高风险部署、批量导入或数据结构调整前额外执行。
+- 每周检查最近成功时间、文件大小、校验状态、磁盘空间和 timer；磁盘可用空间低于 20% 时必须处理。
+- 每月重新校验一个历史备份；连续 24 小时无成功备份按生产故障处理。
+- 完整策略与变更记录见 `docs/superpowers/specs/2026-09-05-production-backup-design.md`。
+
+### 回退
+
+停用并删除宿主机 `academe-backup.timer` 与 `academe-backup.service`，执行 `systemctl daemon-reload`；保留已有备份。删除仓库 `deploy/backup/` 前必须先停用 timer。
+
+## 19. 2026-09-05 非生产恢复演练
+
+- [x] 使用 `runtime-data/backups/academe-backup-20260905T175318Z/` 创建完全隔离的临时 PostgreSQL 恢复环境，不连接生产网络、不发布端口。
+- [x] 将 custom-format dump 恢复到临时数据库，并比较生产库与恢复库的业务表集合及逐表行数。
+- [x] 将内容归档解压到临时目录，并比较原内容目录与恢复目录的相对文件路径和 SHA-256。
+- [x] 记录验证结果后删除明确命名的临时容器和临时目录，不触碰生产数据库、生产内容或成功备份。
+
+- 完成结果：生产库与恢复库的 61 张业务表及逐表行数完全一致，总计 21 行；原内容与恢复内容的相对路径及 SHA-256 完全一致，共 1 个文件、17,494 字节。
+- 首次清理阶段因解压文件属于容器 root，宿主机 trap 无权删除临时目录，导致总命令退出 1；数据库与内容验证当时已经通过，临时数据库容器已删除。
+- 修正方式：清理过程也通过只挂载该次明确 `mktemp` 目录的一次性容器执行；残留目录清理后重新完成整套演练，最终退出 0。
+- 最终状态：临时容器和 `/tmp/academe-restore-20260905.*` 均不存在；原成功备份再次验证通过；三个生产容器保持 healthy 且重启次数均为 0。
+
+## 20. 2026-09-05 历史部署清单证据回填
+
+- [x] 复核 `deploy/.env.example`、正式 `deploy/.env`、Compose 集中配置和 Git 忽略状态；`.env` 权限为 `0600`，未被 Git 跟踪。
+- [x] Compose 配置解析通过，应用构建上下文为当前 Academe 仓库，镜像为 `academe-app:local`，未引用上游应用镜像。
+- [x] PostgreSQL、Redis 和内容挂载解析到仓库内 `runtime-data/`；Redis AOF、独立网络、健康检查、依赖和重启策略均已配置。
+- [x] 本机根页面/API及公网根页面/API均返回 HTTP 200；三个生产容器 healthy，重启次数为 0。
+- [x] 数据库存在组织 `Academe`、slug `metacognix` 和 2 个用户；管理员登录、邮件投递和重启后持久化已有先前验收证据。
+- [x] 已通过本机生产 API 创建临时课程、章节和 PDF 课程活动，核对数据库与持久化文件后精确清理；详见第 22 节。
+- [ ] 尚未完成协作编辑/WebSocket 的独立端到端验收。
+- [ ] AI 当前实际为启用，不符合早期“保持关闭”计划；模型调用可用性仍未验收。
+- [ ] 一组凭据尚未全部达到生产随机强度；用户已明确选择当前不轮换，包括继续沿用现有 Resend Key。
+- [ ] 异机备份因尚未购买或确定外部存储而暂缓；本机自动备份与首次隔离恢复演练不受影响。
+
+说明：第 5、6 节保留的是部署前的历史状态和原始任务，不删除。此次只依据当前文件、容器、HTTP、数据库和既有验收记录将已完成项原位勾选；未验证或与当前状态不符的项目继续保留为 `[ ]`。
+## 21. 2026-09-05 Tinybird 当前状态复核
+
+- [x] Tinybird CLI 位于隔离工具目录，版本为 `4.6.16`；`deploy/tinybird/.tinyb` 权限为 `0600` 且被 Git 忽略。
+- [x] `deploy/tinybird/prepare.sh` 从上游 `events.datasource` 生成临时部署文件，仅追加 `APPEND` 与 `READ` Token 声明。
+- [x] 生成目录只包含 `datasources/events.datasource`，没有包含任何参考 pipe 或 endpoint。
+- [x] 云端 datasource API 返回 HTTP 200，且仅列出 `events`。
+- [x] Read Token SQL 查询返回 HTTP 200；写入前云端共有 61 条事件。
+- [x] Ingest Token 写入验收事件返回 HTTP 202；唯一标识为 `academe-audit-20260905T183950Z-25659`。
+- [x] Read Token 随后查询该标识返回 HTTP 200，匹配 1 条。
+- [x] 事件类型统计包含 59 条 `page_view`、1 条 `user_signed_up`、本轮验收事件及此前验收事件，证明应用生产事件已经进入 `events`。
+- [x] 三个生产容器保持 healthy，未为本轮复核重启应用。
+- [ ] 用户明确选择继续沿用现有凭据，本轮不撤销或轮换 Tinybird Token。
+
+测试事件按 datasource 的 365 天 TTL 正常保留，不对 MergeTree 执行单行破坏性删除。本文档只记录测试标识、HTTP 状态和计数，不记录任何 Token 明文。
+
+## 22. 2026-09-05 课程、章节与文件上传生产验收
+
+- [x] 使用现有管理员账户通过本机生产 API 完成一次登录，不在命令输出或文档中记录密码、Token。
+- [x] 创建带唯一 `academe-acceptance-` 前缀的临时课程，并核对 API 返回值和数据库记录。
+- [x] 在该课程中创建临时章节，并核对 API 返回值和数据库关联。
+- [x] 上传一份最小有效 PDF 作为课程活动，并核对 API 返回值、数据库记录和持久化文件。
+- [x] 仅使用 API 返回的精确课程 UUID 删除临时课程，确认课程、章节、活动、持久化文件均已清理。
+- [x] 验收期间三个生产容器保持 healthy，重启次数为 0。
+
+本验收不修改上游业务源码；只产生临时生产数据，并在验证后通过公开 API 精确清理。若任一步失败，停止后续写操作并保留证据，不把对应任务标记为完成。
+
+- 首次尝试：登录和课程创建均返回 HTTP 200；随后只读数据库核对命令因测试脚本把 SQL 单引号错误写成 `\\047` 而退出。清理 trap 使用该次 API 返回的精确课程 UUID 删除临时课程，返回 HTTP 200；随后确认课程、章节、活动均为 0，未发现对应内容目录，临时 PDF 已删除。
+- 修正：先用无写入查询验证“SQL 作为位置参数传入容器”的写法，再重新执行整套验收；没有修改应用源码或部署配置。
+- 成功批次：`academe-acceptance-20260905T193027Z-4141355`。登录、课程创建、章节创建、PDF 活动创建和课程删除均返回 HTTP 200。
+- 数据证据：课程、章节和 PDF 活动在创建后各匹配 1 条，章节与课程、活动与章节关联均正确；上传文件 57 字节，宿主机持久化文件与源文件 SHA-256 一致。
+- 清理证据：按课程 UUID 删除后，课程、章节、活动、课程章节关联、章节活动关联的剩余计数为 `0|0|0|0|0`，对应课程内容目录不存在，`/tmp` 测试 PDF 和 API 临时响应文件均已删除。

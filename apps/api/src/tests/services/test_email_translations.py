@@ -37,6 +37,15 @@ class TestT:
         assert "LearnHouse" not in t("zh", "email_verification.body", username="Martin")
         assert "Academe" in t("zh", "nudge.reactivation.whats_changed.subject")
 
+    def test_brand_normalization_does_not_rewrite_dynamic_values(self):
+        rendered = t(
+            "en",
+            "invitation.intro",
+            inviter="Martin",
+            org_name="LearnHouse Research",
+        )
+        assert "<strong>LearnHouse Research</strong> on Academe" in rendered
+
     def test_translates_to_target_language(self):
         # Sanity check: at least one well-known phrase resolves correctly.
         assert t("fr", "invitation.heading") == "Vous êtes invité !"

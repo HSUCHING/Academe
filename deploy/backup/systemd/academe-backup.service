@@ -1,0 +1,15 @@
+[Unit]
+Description=Academe verified production backup
+Requires=docker.service
+After=docker.service
+ConditionPathExists=/home/dev/RxProjects/Academe/deploy/backup/backup.sh
+
+[Service]
+Type=oneshot
+User=dev
+Group=dev
+WorkingDirectory=/home/dev/RxProjects/Academe
+ExecStart=/home/dev/RxProjects/Academe/deploy/backup/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
